@@ -1,0 +1,137 @@
+﻿<Window x:Class="JudgeSearcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:JudgeSearcher" 
+        xmlns:utility="clr-namespace:JudgeSearcher.Utility" 
+        xmlns:models="clr-namespace:JudgeSearcher.Models" 
+        d:DataContext="{d:DesignInstance Type=models:Florida}"
+        mc:Ignorable="d"
+        Title="Judge Search" Height="450" Width="800">
+
+    <Window.Resources>
+        <utility:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <Style TargetType="GroupBox">
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" FontWeight="Bold" FontSize="20"/>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Margin" Value="0,5,5,5"/>
+        </Style>
+        <Style TargetType="ScrollViewer">
+            <Setter Property="CanContentScroll" Value="True"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="AlternationCount" Value="2"/>
+            <Setter Property="AlternatingRowBackground" Value="LightGray"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="50"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="JUDICIAL CIRCUITS" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2">
+            <ListView ItemsSource="{Binding Circuits}" SelectedItem="{Binding Circuit}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="BorderBrush" Value="LightGray"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Status}" Value="-1">
+                                <Setter Property="Foreground" Value="LightGray"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Status}" Value="0">
+                                <Setter Property="Foreground" Value="DarkOrange"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Height="50">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="{Binding Name}" VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+
+                            <TextBlock Grid.Row="1" Text="{Binding Description}" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </GroupBox>
+
+        <GroupBox Grid.Row="0" Grid.Column="1" Header="JUDGES">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding Path=Circuit.Name}" FontSize="20" FontWeight="Bold" Margin="10"/>
+                </StackPanel>
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Path=Circuit.Judges}">
+                    <DataGrid.Background>
+                        <ImageBrush ImageSource="Resources/florida.png" Opacity="0.3" Stretch="Uniform"/>
+                    </DataGrid.Background>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding ID}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding Type}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Judicial Assistant" Binding="{Binding JudicialAssistant}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Location" Binding="{Binding Location}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Street" Binding="{Binding Street}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="City" Binding="{Binding City}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Zip" Binding="{Binding Zip}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="County" Binding="{Binding County}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Circuit" Binding="{Binding Circuit}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="District" Binding="{Binding District}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Court Room" Binding="{Binding CourtRoom}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Hearing Room" Binding="{Binding HearingRoom}" IsReadOnly="True" Width="Auto"/>
+                        <DataGridTextColumn Header="Sub-Division" Binding="{Binding SubDivision}" IsReadOnly="True" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </GroupBox>
+
+        <ProgressBar Grid.Row="1" Grid.Column="1" IsIndeterminate="{Binding Path=Circuit.IsBusy}"/>
+
+        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Clear" Command="{Binding Path=Circuit.Clear}" Visibility="{Binding Visible}"/>
+            <Button Content="Export" Command="{Binding Path=Circuit.Export}" Visibility="{Binding Visible}"/>
+            <Button Content="Scrape" Command="{Binding Path=Circuit.Scrape}" Visibility="{Binding Visible}"/>
+        </StackPanel>
+    </Grid>
+</Window>
