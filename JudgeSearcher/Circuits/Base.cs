@@ -177,6 +177,7 @@ namespace JudgeSearcher.Circuits
             catch (Exception ex)
             {
                 Log.Logger.Error(ex.StackTrace);
+                return "An error occured whilst trying to scrape.";
             }
 
             return "Scraping completed successfully.";

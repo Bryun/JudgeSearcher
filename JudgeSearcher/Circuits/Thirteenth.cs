@@ -4,6 +4,7 @@ using OpenQA.Selenium;
 using Serilog;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -35,31 +36,22 @@ namespace JudgeSearcher.Circuits
 
                 try
                 {
-                    string county = string.Empty;
-
                     foreach (var row in driver.FindElement(By.XPath("//table[1]")).FindElements(By.XPath("//tbody/tr")))
                     {
                         if (row.FindElements(By.TagName("td")).Count > 0)
                         {
                             var cells = row.FindElements(By.TagName("td"));
+                            var values = row.FindElements(By.TagName("td")).Select(e => e.Text).ToList();
                             var exclusion = new string[] { "COUNTY COURTS", "CIRCUIT COURTS", "DIVISION" };
                             var indexes = new int[] { 6, 7, 8 };
+                            var id = string.Empty;
 
-                            Log.Logger.Error(string.Join("|", cells.Select(e => e.Text).ToArray()));
-
-                            switch (cells[0].Text)
+                            if (row.FindElements(By.TagName("a")).Count > 0)
                             {
-                                case "COUNTY COURTS":
-                                    county = "County";
-                                    break;
-                                case "CIRCUIT COURTS":
-                                    county = "Circuit";
-                                    break;
-                                default:
-                                    break;
+                                id = row.FindElement(By.TagName("a")).XPath(identify: "/JudicialDirectory/");
                             }
 
-                            if (indexes.Contains(cells.Count()) && !exclusion.Contains(cells[0].Text) && !string.IsNullOrEmpty(cells[3].Text))
+                            if (indexes.Contains(cells.Count()) && !exclusion.Contains(values[0]) && !string.IsNullOrEmpty(values[3]) && !values.All(e => string.IsNullOrEmpty(e.Trim())))
                             {
                                 try
                                 {
@@ -67,42 +59,42 @@ namespace JudgeSearcher.Circuits
                                     {
                                         Circuit = Alias,
                                         County = Description,
-                                        Type = county
+                                        Type = values[0] == "COUNTY COURTS" ? "County" : "Circuit"
                                     };
 
-                                    string xpath = string.Empty;
+                                    int idx = values.FindIndex(e => Regex.IsMatch(e, "\\d{3}-\\d{3}-\\d{4}"));
 
-                                    switch (cells.Count())
+                                    if (values.Count() == 8) 
                                     {
-                                        case 8:
-                                            judge.SubDivision = cells[1].Text;
-                                            judge.ID = cells[2].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[2].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
-                                            judge.LastName = cells[2].Text.Split(", ")[0];
-                                            judge.FirstName = cells[2].Text.Split(", ").Length > 1 ? cells[2].Text.Split(", ")[1] : string.Empty;
-                                            judge.Street = cells[3].Text;
-                                            judge.CourtRoom = cells[4].Text;
-                                            judge.Phone = cells[5].Text;
-                                            judge.JudicialAssistant = cells[6].Text;
-                                            break;
-                                        case 7:
-                                            judge.SubDivision = cells[0].Text;
-                                            judge.ID = cells[2].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[2].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
-                                            judge.LastName = cells[2].Text.Split(", ")[0];
-                                            judge.FirstName = cells[2].Text.Split(", ").Length > 1 ? cells[2].Text.Split(", ")[1] : string.Empty;
-                                            judge.Street = cells[3].Text;
-                                            judge.CourtRoom = cells[4].Text;
-                                            judge.Phone = cells[5].Text;
-                                            judge.JudicialAssistant = cells[6].Text;
-                                            break;
-                                        default:
-                                            judge.ID = cells[1].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[1].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
-                                            judge.LastName = cells[1].Text.Split(", ").FirstOrDefault();
-                                            judge.FirstName = cells[1].Text.Split(", ").LastOrDefault();
-                                            judge.Street = cells[2].Text;
-                                            judge.CourtRoom = cells[3].Text;
-                                            judge.Phone = cells[4].Text;
-                                            judge.JudicialAssistant = cells[5].Text;
-                                            break;
+                                        judge.SubDivision = values[idx - 4];
+                                        judge.ID = id;
+                                        judge.LastName = values[idx - 3].Split(", ")[0];
+                                        judge.FirstName = values[idx - 3].Split(", ").Length > 1 ? values[idx - 3].Split(", ")[1] : string.Empty;
+                                        judge.Street = values[idx - 2];
+                                        judge.CourtRoom = values[idx - 1];
+                                        judge.Phone = values[idx];
+                                        judge.JudicialAssistant = values[idx + 1];
+                                    }
+                                    else if (values.Count() == 7) 
+                                    {
+                                        judge.SubDivision = values[idx - 5];
+                                        judge.ID = id;
+                                        judge.LastName = values[idx - 3].Split(", ")[0];
+                                        judge.FirstName = values[idx - 3].Split(", ").Length > 1 ? values[idx - 3].Split(", ")[1] : string.Empty;
+                                        judge.Street = values[idx - 2];
+                                        judge.CourtRoom = values[idx - 1];
+                                        judge.Phone = values[idx];
+                                        judge.JudicialAssistant = values[idx + 1];
+                                    }
+                                    else 
+                                    {
+                                        judge.ID = id;
+                                        judge.LastName = values[idx - 3].Split(", ").FirstOrDefault();
+                                        judge.FirstName = values[idx - 3].Split(", ").LastOrDefault();
+                                        judge.Street = values[idx - 2];
+                                        judge.CourtRoom = values[idx - 1];
+                                        judge.Phone = values[idx];
+                                        judge.JudicialAssistant = values[idx + 1];
                                     }
 
                                     if (!judge.FirstName.Trim().Equals(string.Empty))
@@ -121,9 +113,7 @@ namespace JudgeSearcher.Circuits
                     {
                         try
                         {
-                            Log.Logger.Error(e.ID);
-
-                            if (driver.FindElements(By.XPath(e.ID)).Count > 0)
+                            if (!string.IsNullOrEmpty(e.ID) && driver.FindElements(By.XPath(e.ID)).Count > 0)
                             {
                                 IJavaScriptExecutor executor = (IJavaScriptExecutor)driver;
                                 executor.ExecuteScript("arguments[0].click();", driver.FindElement(By.XPath(e.ID)));
@@ -175,7 +165,7 @@ namespace JudgeSearcher.Circuits
                 {
                     Log.Logger.Error(ex.StackTrace);
                 }
-            });
+            }, timeout: 10);
 
             return base.Execute();
         }
