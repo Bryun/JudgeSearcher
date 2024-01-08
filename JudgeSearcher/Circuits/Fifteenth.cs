@@ -66,7 +66,7 @@ namespace JudgeSearcher.Circuits
                             var elements = row.FindElements(By.XPath("./td"));
                             var cells = elements.Select((e) => e.Text).ToList();
 
-                            if (cells.Count == 7)
+                            if (cells.Count == 7 && !Regex.IsMatch(cells.FirstOrDefault(), "Circuit|Vacant"))
                             {
                                 var names = cells.FirstOrDefault().FullName();
 
