@@ -136,7 +136,7 @@ namespace JudgeSearcher.Circuits
                     IJavaScriptExecutor executor = (IJavaScriptExecutor)driver;
                     executor.ExecuteScript("arguments[0].click();", element);
 
-                    driver.FindElements(By.XPath("//div[@class='map-container']//div[@class='map-info']")).Select(e => e.Text).ToList().ForEach(e => Log.Logger.Error(e));
+                    //driver.FindElements(By.XPath("//div[@class='map-container']//div[@class='map-info']")).Select(e => e.Text).ToList().ForEach(e => Log.Logger.Information(e));
 
                     foreach (var container in driver.FindElements(By.XPath("//div[@class='map-container']")))
                     {
@@ -165,11 +165,7 @@ namespace JudgeSearcher.Circuits
             return base.Execute();
         }
 
-        private string[] Location(string value)
-        {
-            return string.Join("|", Regex.Split(value, "\\r\\n|, FL ")).Split("|", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            //return keys.Zip(values, (k,v) => new { k, v }).ToDictionary(x => x.k, x => x.v);
-        }
+        private string[] Location(string value) => string.Join("|", Regex.Split(value, "\\r\\n|, FL ")).Split("|", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        
     }
 }
