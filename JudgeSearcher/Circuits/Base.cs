@@ -29,7 +29,6 @@ namespace JudgeSearcher.Circuits
 
         #endregion
 
-
         #region Properties
 
         public virtual string Name => string.Format("{0} Circuit", Alias);
@@ -71,7 +70,6 @@ namespace JudgeSearcher.Circuits
         }
 
         #endregion
-
 
         #region Commands
 

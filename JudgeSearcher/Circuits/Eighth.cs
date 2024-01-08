@@ -296,8 +296,6 @@ namespace JudgeSearcher.Circuits
                     {
                         if (x.FirstName.Equals(y.FirstName) && x.LastName.Equals(y.LastName))
                         {
-                            Log.Logger.Error(string.Format("{0} {1}", x.FirstName, x.LastName));
-
                             y.Street = string.IsNullOrEmpty(x.Street) ? y.Street : x.Street;
                             y.Location = string.IsNullOrEmpty(x.Location) ? y.Location : x.Location;
                             y.CourtRoom = !string.IsNullOrEmpty(x.CourtRoom) ? x.CourtRoom : y.CourtRoom;
