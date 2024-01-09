@@ -45,7 +45,7 @@ namespace JudgeSearcher.Circuits
                             var exclusion = new string[] { "COUNTY COURTS", "CIRCUIT COURTS", "DIVISION" };
                             var indexes = new int[] { 6, 7, 8 };
 
-                            Log.Logger.Error(string.Join("|", cells.Select(e => e.Text).ToArray()));
+                            //Log.Logger.Error(string.Join("|", cells.Select(e => e.Text).ToArray()));
 
                             switch (cells[0].Text)
                             {
@@ -121,7 +121,7 @@ namespace JudgeSearcher.Circuits
                     {
                         try
                         {
-                            Log.Logger.Error(e.ID);
+                            //Log.Logger.Error(e.ID);
 
                             if (driver.FindElements(By.XPath(e.ID)).Count > 0)
                             {
