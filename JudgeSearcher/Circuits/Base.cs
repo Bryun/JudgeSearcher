@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -136,6 +137,15 @@ namespace JudgeSearcher.Circuits
         {
             return Judges != null && Judges.Count > 0;
         });
+
+        public virtual void Display(string message)
+        {
+            Debug.WriteLine("----------------------------------------------------------------------------------------");
+            Debug.WriteLine("----------------------------------------------------------------------------------------");
+            Debug.WriteLine(message);
+            Debug.WriteLine("----------------------------------------------------------------------------------------");
+            Debug.WriteLine("----------------------------------------------------------------------------------------");
+        }
 
         #endregion
 
