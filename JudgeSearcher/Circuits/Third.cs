@@ -5,6 +5,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -55,45 +56,53 @@ namespace JudgeSearcher.Circuits
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
-
-                driver.FindElement(By.XPath("//a[contains(text(), 'Directory')]")).Click();
-
-                wait.Until((e) => By.XPath("//div[@id='tag_cloud-3']/div/a"));
-
-                var level1hrefs = driver.FindElements(By.XPath("//div[@id='tag_cloud-3']/div/a")).Select((e) => e.GetAttribute("href")).ToList();
-
-                foreach (var level1href in level1hrefs)
+                try
                 {
-                    try
+
+                    driver.FindElement(By.XPath("//a[contains(text(), 'Directory')]")).Click();
+
+                    wait.Until((e) => By.XPath("//div[@id='tag_cloud-3']/div/a"));
+
+                    var level1hrefs = driver.FindElements(By.XPath("//div[@id='tag_cloud-3']/div/a")).Select((e) => e.GetAttribute("href")).ToList();
+
+                    foreach (var level1href in level1hrefs)
                     {
-                        var element = driver.FindElement(By.XPath(string.Format("//a[@href='{0}']", level1href)));
-                        var county = element.Text.Substring(0, element.Text.IndexOf("COUNTY") + 6);
-                        element.Click();
-
-                        wait.Until((e) => By.XPath("//div[@class='blog-entry-readmore clr']/a"));
-
-                        var level2hrefs = driver.FindElements(By.XPath("//div[@class='blog-entry-readmore clr']/a")).Select((e) => e.GetAttribute("href")).ToList();
-
-                        foreach (var level2href in level2hrefs)
+                        try
                         {
-                            try
+                            var element = driver.FindElement(By.XPath(string.Format("//a[@href='{0}']", level1href)));
+                            var county = element.Text.Substring(0, element.Text.IndexOf("COUNTY") + 6);
+                            element.Click();
+
+                            wait.Until((e) => By.XPath("//div[@class='blog-entry-readmore clr']/a"));
+
+                            var level2hrefs = driver.FindElements(By.XPath("//div[@class='blog-entry-readmore clr']/a")).Select((e) => e.GetAttribute("href")).ToList();
+
+                            foreach (var level2href in level2hrefs)
                             {
+
                                 driver.FindElement(By.XPath(string.Format("//a[@href='{0}']", level2href))).Click();
 
-                                wait.Until((e) => By.XPath("//*[@id='content']/div/div/section[1]/div/div/div/div/div/div/div/h1"));
+                                string full_name_xpath = "//*[@id='content']/div/section[1]/div/div/div/div/div/h1";
 
-                                var full_name = driver.FindElement(By.XPath("//*[@id='content']/div/div/section[1]/div/div/div/div/div/div/div/h1")).Text;
+                                Debug.WriteLine("----------------------------------------------------------------------------------");
+                                Debug.WriteLine("----------------------------------------------------------------------------------");
+                                Debug.WriteLine(driver.FindElement(By.XPath(full_name_xpath)).Text);
+                                Debug.WriteLine("----------------------------------------------------------------------------------");
+                                Debug.WriteLine("----------------------------------------------------------------------------------");
+
+                                wait.Until((e) => By.XPath(full_name_xpath));
+
+                                var full_name = driver.FindElement(By.XPath(full_name_xpath)).Text;
                                 full_name = full_name.Replace("Judge ", string.Empty);
 
                                 var surname = full_name.EndsWith("Jr.") ? string.Join(" ", full_name.Split(" ").TakeLast(2)) : full_name.Substring(full_name.LastIndexOf(" ")).Trim();
                                 var name = full_name.Replace(surname, string.Empty);
 
-                                var address = Address(driver.FindElement(By.XPath("//*[@id='content']/div/div/section[2]/div/div/div[2]/div/div/section[2]/div/div/div[2]/div/div/div[2]/div/div")).Text);
+                                var address = Address(driver.FindElement(By.XPath("//*[@id='content']/div/section[2]/div/div[2]/div/section[2]/div/div[2]/div/div[2]/div")).Text);
 
-                                var phone = driver.FindElement(By.XPath("//*[@id='content']/div/div/section[2]/div/div/div[2]/div/div/section[2]/div/div/div[2]/div/div/div[3]/div/div")).Text;
+                                var phone = driver.FindElement(By.XPath("//*[@id='content']/div/section[2]/div/div[2]/div/section[2]/div/div[2]/div/div[3]/div")).Text;
                                 phone = phone.Replace("Phone: ", string.Empty);
-
-                                var assistant = driver.FindElement(By.XPath("//*[@id='content']/div/div/section[2]/div/div/div[2]/div/div/section[2]/div/div/div[2]/div/div/div[5]/div/div")).Text;
+                                var assistant = driver.FindElement(By.XPath("//*[@id='content']/div/section[2]/div/div[2]/div/section[2]/div/div[2]/div/div[5]/div")).Text;
                                 assistant = assistant.Replace("Judicial Assistant: ", string.Empty);
 
                                 Judge judge = new Judge()
@@ -112,23 +121,23 @@ namespace JudgeSearcher.Circuits
                                 };
 
                                 collection.Add(judge);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Logger.Error(ex.StackTrace);
-                            }
 
-                            driver.Navigate().Back();
+                                driver.Navigate().Back();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Logger.Error(ex.StackTrace);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Log.Logger.Error(ex.StackTrace);
-                    }
-                }
 
-                driver.Navigate().Back();
-            });
+                    driver.Navigate().Back();
+                }
+                catch (Exception ex)
+                {
+                    Log.Logger.Error(ex.StackTrace);
+                }
+            }, allowImages: true);
 
             return base.Execute();
         }
