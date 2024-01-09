@@ -7,6 +7,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -119,13 +120,11 @@ namespace JudgeSearcher.Circuits
 
                             wait.Until((e) => By.XPath("//h2[@class='elementor-heading-title elementor-size-default']"));
 
-                            var document = new HtmlWeb().Load(driver.Url);
+                            string origin_xpath = "//div[contains(text(), 'Division ') or contains(text(), 'Divisions ')]";
 
-                            var division = document.DocumentNode.SelectNodes("//div[@class = 'elementor-text-editor elementor-clearfix']").Where((e) => e.InnerText.Contains("Division")).First();
+                            judge.SubDivision = driver.FindElement(By.XPath(origin_xpath)).Text;
 
-                            judge.SubDivision = division.InnerText.Replace(" &#8211; ", ", ").Trim();
-
-                            var address = string.Join("|", Regex.Split(division.ParentNode.ParentNode.NextSibling.NextSibling.InnerText, "\\r\\n|\\n|\\t|, FL |,")).Split("|", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                            var address = string.Join("|", Regex.Split(driver.FindElement(By.XPath(origin_xpath + "/ancestor::div/following-sibling::div/div")).Text, "\\r\\n|\\n|\\t|, FL |,")).Split("|", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
                             judge.CourtRoom = address.Where(e => Regex.IsMatch(e, "Rm.|Room|Courtroom|Bldg\\.|Suite")).FirstOrDefault() ?? string.Empty;
                             judge.Zip = address.Where(e => Regex.IsMatch(e, "[0-9]{5}$")).FirstOrDefault()!;
                             judge.City = address[address.IndexOf(judge.Zip) - 1];
