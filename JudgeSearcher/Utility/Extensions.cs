@@ -73,7 +73,9 @@ namespace JudgeSearcher.Utility
         {
             var href = element.GetAttribute("href");
 
-            return href != null && href.Contains(identify)  ? string.Format("//a[@href='{0}']", href.Substring(href.IndexOf(identify))) :  string.Empty;
+            href = href.Substring(href.IndexOf(identify));
+
+            return string.Format("//a[@href='{0}']", href);
         }
 
         public static string HREF(this IWebElement element, string identify)

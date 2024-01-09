@@ -10,7 +10,7 @@ namespace JudgeSearcher.Utility
 {
     public static class Scraper
     {
-        public static async Task<bool> Scan(string url, Action<ChromeDriver, WebDriverWait> action, bool visible = true, bool allowImages = false, int timeout = 20)
+        public static async Task<bool> Scan(string url, Action<ChromeDriver, WebDriverWait> action, bool visible = true, bool allowImages = false)
         {
             new DriverManager().SetUpDriver(new ChromeConfig(), VersionResolveStrategy.MatchingBrowser);
 
@@ -26,10 +26,10 @@ namespace JudgeSearcher.Utility
 
             using (ChromeDriver driver = new ChromeDriver(options))
             {
-                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(timeout);
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(20);
                 driver.Navigate().GoToUrl(url);
 
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeout));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(20));
 
                 action(driver, wait);
 
