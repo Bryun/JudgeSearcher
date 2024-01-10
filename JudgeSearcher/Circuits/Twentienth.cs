@@ -2,12 +2,12 @@
 using JudgeSearcher.Models;
 using JudgeSearcher.Utility;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Interactions;
 using Serilog;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace JudgeSearcher.Circuits
@@ -23,7 +23,7 @@ namespace JudgeSearcher.Circuits
 
         public override string Description => "Charlotte, Collier, Glades, Hendry and Lee";
 
-        public override string URL => "https://www.ca.cjis20.org/About-The-Court/judiciary.aspx"; //"http://www.ca.cjis20.org/home/main/homepage.asp";
+        public override string URL => "http://www.ca.cjis20.org/home/main/homepage.asp";
 
         public override Task<string> Execute()
         {
@@ -31,13 +31,21 @@ namespace JudgeSearcher.Circuits
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
-                try
+                Actions action = new Actions(driver);
+
+                var about_the_court = driver.FindElement(By.XPath("//*[@id='navBarMain']/li[1]/div/a[1]"));
+                action.MoveToElement(about_the_court).Perform();
+
+                var judges_magistrates_hearing_officers = driver.FindElement(By.XPath("//*[@id='navBarMain']/li[1]/ul/li[6]/a"));
+                action.MoveToElement(judges_magistrates_hearing_officers).Click().Perform();
+
+                wait.Until((e) => By.XPath("//h1[contains(text(), 'Judges, Magistrates & Hearing Officers')]"));
+
+                var tags = driver.FindElements(By.XPath("//div[@class='judgelist']/div/ul/li/div/div/a")).Select(e => e.GetAttribute("href")).ToArray();
+
+                foreach (var tag in tags)
                 {
-                    wait.Until((e) => By.XPath("///head/title[contains(text(), 'Judges, Magistrates & Hearing Officers')]"));
-
-                    var tags = driver.FindElements(By.XPath("//div[@class='judgelist']/div/ul/li/div/div/a")).Select(e => e.GetAttribute("href")).ToArray();
-
-                    foreach (var tag in tags)
+                    try
                     {
                         Judge judge = new Judge()
                         {
@@ -92,14 +100,13 @@ namespace JudgeSearcher.Circuits
 
                         collection.Add(judge);
 
-                        Thread.Sleep(TimeSpan.FromSeconds(2));
-
-                        driver.Navigate().Back();
                     }
-                }
-                catch (Exception ex)
-                {
-                    Log.Logger.Error(ex.Message);
+                    catch (Exception ex)
+                    {
+                        Log.Logger.Error(ex.Message);
+                    }
+
+                    driver.Navigate().Back();
                 }
 
             }, allowImages: true);
