@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace JudgeSearcher.Circuits
@@ -80,26 +81,28 @@ namespace JudgeSearcher.Circuits
                             {
                                 driver.FindElement(By.XPath(string.Format("//a[@href='{0}']", level2href))).Click();
 
-                                wait.Until((e) => By.XPath("//*[@id='content']/div/div/section[1]/div/div/div/div/div/div/div/h1"));
+                                wait.Until((e) => By.XPath("//*[@id='content']/div/section[1]/div/div/div/div/div/h1"));
 
-                                var full_name = driver.FindElement(By.XPath("//*[@id='content']/div/div/section[1]/div/div/div/div/div/div/div/h1")).Text;
+                                var full_name = driver.FindElement(By.XPath("//*[@id='content']/div/section[1]/div/div/div/div/div/h1")).Text;
                                 full_name = full_name.Replace("Judge ", string.Empty);
+
+                                var _type = driver.FindElement(By.XPath("//*[@id='content']/div/section[2]/div/div[1]/div/div[2]/div")).Text.Split(Environment.NewLine).Where(e => Regex.IsMatch(e, "County Judge.+Present$|Circuit Judge.+Present$")).FirstOrDefault();
 
                                 var surname = full_name.EndsWith("Jr.") ? string.Join(" ", full_name.Split(" ").TakeLast(2)) : full_name.Substring(full_name.LastIndexOf(" ")).Trim();
                                 var name = full_name.Replace(surname, string.Empty);
 
-                                var address = Address(driver.FindElement(By.XPath("//*[@id='content']/div/div/section[2]/div/div/div[2]/div/div/section[2]/div/div/div[2]/div/div/div[2]/div/div")).Text);
+                                var address = Address(driver.FindElement(By.XPath("//*[@id='content']/div/section[2]/div/div[2]/div/section[2]/div/div[2]/div/div[2]/div")).Text);
 
-                                var phone = driver.FindElement(By.XPath("//*[@id='content']/div/div/section[2]/div/div/div[2]/div/div/section[2]/div/div/div[2]/div/div/div[3]/div/div")).Text;
+                                var phone = driver.FindElement(By.XPath("//*[@id='content']/div/section[2]/div/div[2]/div/section[2]/div/div[2]/div/div[3]/div")).Text;
                                 phone = phone.Replace("Phone: ", string.Empty);
 
-                                var assistant = driver.FindElement(By.XPath("//*[@id='content']/div/div/section[2]/div/div/div[2]/div/div/section[2]/div/div/div[2]/div/div/div[5]/div/div")).Text;
+                                var assistant = driver.FindElement(By.XPath("//*[@id='content']/div/section[2]/div/div[2]/div/section[2]/div/div[2]/div/div[5]/div")).Text;
                                 assistant = assistant.Replace("Judicial Assistant: ", string.Empty);
 
                                 Judge judge = new Judge()
                                 {
                                     County = county,
-                                    Type = "County Judge",
+                                    Type = Regex.Match(_type, "County Judge|Circuit Judge").Value,
                                     Circuit = Alias,
                                     LastName = surname,
                                     FirstName = name,

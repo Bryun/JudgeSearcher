@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -180,6 +181,17 @@ namespace JudgeSearcher.Circuits
             }
 
             return "Scraping completed successfully.";
+        }
+
+        public void Display(string message)
+        {
+            Debug.WriteLine("--------------------------------------------------------------------------------------------------------------------");
+            Debug.WriteLine("-- START --");
+            Debug.WriteLine("--------------------------------------------------------------------------------------------------------------------");
+            Debug.WriteLine(message);
+            Debug.WriteLine("--------------------------------------------------------------------------------------------------------------------");
+            Debug.WriteLine("-- END --");
+            Debug.WriteLine("--------------------------------------------------------------------------------------------------------------------");
         }
 
         #endregion
