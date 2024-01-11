@@ -92,6 +92,9 @@ namespace JudgeSearcher.Circuits
                                         judge.Type = t[1].Trim();
                                         break;
                                     case "Office Address":
+
+                                        Display(t[1]);
+
                                         var location = Regex.Match(t[1], "Building B, Suite \\d+|Suite\\s([A-Z]\\d+|\\d+)|\\d+ Courthouse Addition|Martin County Courthouse").Value;
 
                                         judge.Location = location;
