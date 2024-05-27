@@ -126,7 +126,7 @@
             </Grid>
         </GroupBox>
 
-        <ProgressBar Grid.Row="1" Grid.Column="1" IsIndeterminate="{Binding Path=Circuit.IsBusy}"/>
+        <ProgressBar Grid.Row="1" Grid.Column="1" IsIndeterminate="{Binding Path=Circuit.IsBusy}" Margin="5,0,5,0"/>
 
         <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Clear" Command="{Binding Path=Circuit.Clear}" Visibility="{Binding Visible}"/>
