@@ -161,7 +161,7 @@ namespace JudgeSearcher.Circuits
 
                     foreach (var location in locations)
                     {
-                        collection.Where(e => mapping[e.Street].Equals(location[1])).ToList().ForEach(e =>
+                        collection.Where(e => mapping.Keys.Contains(e.Street) && mapping[e.Street].Equals(location[1])).ToList().ForEach(e =>
                         {
                             e.Location = location[0];
                         });

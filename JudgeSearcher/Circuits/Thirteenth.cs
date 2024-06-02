@@ -4,6 +4,7 @@ using OpenQA.Selenium;
 using Serilog;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -76,7 +77,7 @@ namespace JudgeSearcher.Circuits
                                     {
                                         case 8:
                                             judge.SubDivision = cells[1].Text;
-                                            judge.ID = cells[2].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[2].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
+                                            //judge.ID = cells[2].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[2].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
                                             judge.LastName = cells[2].Text.Split(", ")[0];
                                             judge.FirstName = cells[2].Text.Split(", ").Length > 1 ? cells[2].Text.Split(", ")[1] : string.Empty;
                                             judge.Street = cells[3].Text;
@@ -86,7 +87,7 @@ namespace JudgeSearcher.Circuits
                                             break;
                                         case 7:
                                             judge.SubDivision = cells[0].Text;
-                                            judge.ID = cells[2].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[2].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
+                                            //judge.ID = cells[2].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[2].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
                                             judge.LastName = cells[2].Text.Split(", ")[0];
                                             judge.FirstName = cells[2].Text.Split(", ").Length > 1 ? cells[2].Text.Split(", ")[1] : string.Empty;
                                             judge.Street = cells[3].Text;
@@ -95,7 +96,7 @@ namespace JudgeSearcher.Circuits
                                             judge.JudicialAssistant = cells[6].Text;
                                             break;
                                         default:
-                                            judge.ID = cells[1].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[1].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
+                                            //judge.ID = cells[1].FindElements(By.TagName("a")).FirstOrDefault() != null ? cells[1].FindElements(By.TagName("a")).FirstOrDefault().XPath(identify: "/JudicialDirectory/") : string.Empty;
                                             judge.LastName = cells[1].Text.Split(", ").FirstOrDefault();
                                             judge.FirstName = cells[1].Text.Split(", ").LastOrDefault();
                                             judge.Street = cells[2].Text;
@@ -110,6 +111,7 @@ namespace JudgeSearcher.Circuits
                                 }
                                 catch (Exception ex)
                                 {
+                                    Log.Logger.Error(ex.Message);
                                     Log.Logger.Error(ex.StackTrace);
                                 }
 

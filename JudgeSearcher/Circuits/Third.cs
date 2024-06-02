@@ -22,7 +22,7 @@ namespace JudgeSearcher.Circuits
 
         public override string Description => "Columbia, Dixie, Hamilton, Lafayette, Madison, Suwannee and Taylor";
 
-        public override string URL => "http://www.jud3.flcourts.org/";
+        public override string URL => "https://thirdcircuitfl.org/judges-page/"; //"http://www.jud3.flcourts.org/";
 
         private Dictionary<string, string> Address(string line)
         {

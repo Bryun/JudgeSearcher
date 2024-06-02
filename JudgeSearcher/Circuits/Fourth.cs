@@ -22,7 +22,7 @@ namespace JudgeSearcher.Circuits
 
         public override string Description => "Clay, Duval and Nassau";
 
-        public override string URL => "http://www.coj.net/departments/fourth-judicial-circuit-court.aspx";
+        public override string URL => "https://www.jud4.org/";//"http://www.coj.net/departments/fourth-judicial-circuit-court.aspx";
 
         public override Task<string> Execute()
         {
@@ -82,7 +82,7 @@ namespace JudgeSearcher.Circuits
 
                                             try
                                             {
-                                                if (cells.Count > 0 && !cells.Any(e => string.IsNullOrEmpty(e)))
+                                                if (cells.Count > 0 && !cells.All(e => string.IsNullOrEmpty(e)))
                                                 {
                                                     var judge = new Judge()
                                                     {

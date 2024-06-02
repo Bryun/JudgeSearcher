@@ -1,5 +1,6 @@
 ﻿using OpenQA.Selenium;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -61,7 +62,7 @@ namespace JudgeSearcher.Utility
 
         public static string[] Address(this string value)
         {
-            var expression = "Address: |\\r\\n|, Florida |, FL |, Fl | FL |,";
+            var expression = @"Address: |\r\n|, Florida |, FL |, Fl | FL |,";
 
             if (Regex.IsMatch(value, ", ST."))
                 value = value.Replace(", ST.", " ST.");
@@ -72,6 +73,9 @@ namespace JudgeSearcher.Utility
         public static string XPath(this IWebElement element, string identify)
         {
             var href = element.GetAttribute("href");
+
+            if (!href.Contains(identify)) 
+                return string.Empty;
 
             href = href.Substring(href.IndexOf(identify));
 
