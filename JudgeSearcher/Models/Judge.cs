@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace JudgeSearcher.Models
 {
@@ -177,6 +178,7 @@ namespace JudgeSearcher.Models
 
         #region Methods
 
+        [JsonIgnore]
         public Dictionary<string, string> Map
         {
             get => new Dictionary<string, string>
@@ -197,7 +199,6 @@ namespace JudgeSearcher.Models
                 {"CourtRoom", CourtRoom},
                 {"HearingRoom", HearingRoom},
                 {"SubDivision", SubDivision}
-
             };
         }
 

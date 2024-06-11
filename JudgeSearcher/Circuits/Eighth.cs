@@ -1,14 +1,22 @@
-﻿using HtmlAgilityPack;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Office.CustomUI;
+using DocumentFormat.OpenXml.Spreadsheet;
+using HtmlAgilityPack;
 using JudgeSearcher.Models;
 using JudgeSearcher.Utility;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
+using SeleniumExtras.WaitHelpers;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +37,106 @@ namespace JudgeSearcher.Circuits
         public override string URL => "http://www.circuit8.org/";
 
         public override Task<string> Execute()
+        {
+            _ = Scraper.Scan(URL, (driver, wait) =>
+            {
+                Actions action = new Actions(driver);
+                action.MoveToElement(driver.FindElement(By.XPath("//a[contains(text(), 'Courts & Judges')]"))).Perform();
+
+                var judiciaries = driver.FindElements(By.XPath("//a[text()='Judiciary']")).Select(e => e.GetAttribute("href")).Distinct().ToList();
+
+                foreach (var judiciary in judiciaries)
+                {
+                    driver.FindElement(By.XPath($"//a[@href='{judiciary}']")).Click();
+
+                    var titles = driver.FindElements(By.XPath($"//h1|//h3")).Select(e => new Tuple<string, string>(e.TagName, e.Text)).ToList();
+
+                    foreach (var title in titles)
+                    {
+                        try
+                        {
+                            if (!new Regex("County|Judiciary$|Announced$").IsMatch(title.Item2))
+                            {
+                                //Debug.WriteLine($"\r\nJudge: {title.Item2}\r\n");
+
+                                Judge judge = new Judge()
+                                {
+                                    County = titles.Where(e => e.Item1.Equals("h1")).FirstOrDefault().Item2,
+                                    LastName = new Regex(@"\s[a-zA-Z-]{1,}$").Match(title.Item2).Value
+                                };
+
+                                judge.FirstName = title.Item2.Replace("Judge ", string.Empty).Replace(judge.LastName, string.Empty);
+
+                                wait.Until(ExpectedConditions.ElementExists(By.XPath($"//{title.Item1}[starts-with(text(), '{title.Item2.Split(Environment.NewLine)[0]}')]/../../following-sibling::div/descendant::a[text()='More Info']"))).Click();
+
+                                if (driver.WindowHandles.Count > 1)
+                                    driver.SwitchTo().Window(driver.WindowHandles.Last());
+
+                                var current_assignment = wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//h3[text()='Current Assignment']/../../following-sibling::div/descendant::p"))).Select(e => e.Text).ToList();
+
+                                judge.Type = new Regex(@".*Judge").Match(current_assignment.First()).Value;
+
+                                //current_assignment.ForEach(e => Debug.WriteLine($"Assignment:\r\n{e}\r\n"));
+
+                                driver.FindElement(By.XPath("//a/span[contains(text(), 'Judicial Assistant')]/..")).Click();
+
+                                var assistants = wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//h3[contains(text(), 'Judicial Assistant')]/../../following-sibling::div/descendant::p | //h3[contains(text(), 'Judicial Assistant')]/../../following-sibling::div/div/div"))).Select(e => e.Text).ToList();
+
+                                judge.JudicialAssistant = new Regex(@"(.*(?=\r\n))|(.*)").Match(assistants.FirstOrDefault()).Value;
+
+                                //assistants.ForEach(e => Debug.WriteLine($"Assistant:\r\n{e}\r\n"));
+
+                                driver.FindElement(By.XPath("//a/span[contains(text(), 'Office')]/..")).Click();
+
+                                var addresses = wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//h3[contains(text(), 'Office')]/../../following-sibling::div/descendant::p | //h3[contains(text(), 'Office')]/following-sibling::p"))).Select(e => e.Text).ToList();
+
+                                addresses.ForEach(e => Debug.WriteLine($"Address:\r\n{e}r\n"));
+
+                                foreach (var address in addresses)
+                                {
+                                    judge.Phone = Regex.Match(address, @"\(\d{3}\) \d{3}-\d{4}").Value;
+
+                                    judge.Location = Regex.Match(address, @".*(?=\r\n)").Value;
+                                    judge.Street = Regex.Match(address, @".*Avenue|.*Street").Value;
+                                    judge.CourtRoom = Regex.Match(address, @"Room\s\w+").Value;
+                                    judge.City = Regex.Match(address, @".*(?=,\sFL\s\d+|,\sFlorida\s\d+)").Value;
+                                    judge.Zip = Regex.Match(address, @"(?:FL )\d+|(?:Florida )\d+").Value;
+
+                                    collection.Add(judge);
+                                }
+
+                                Debug.WriteLine(JsonSerializer.Serialize(judge, new JsonSerializerOptions
+                                {
+                                    WriteIndented = true,
+                                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+                                }));
+
+                                Debug.WriteLine("------------------------------------------------------------------------------------------");
+
+                                if (driver.WindowHandles.Count > 1)
+                                {
+                                    driver.SwitchTo().Window(driver.WindowHandles.Last()).Close();
+                                    driver.SwitchTo().Window(driver.WindowHandles.First());
+                                }
+                                else
+                                    driver.Navigate().Back();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex.Message);
+                            Debug.WriteLine(ex.StackTrace);
+                        }
+                    }
+
+                    action.MoveToElement(driver.FindElement(By.XPath("//a[contains(text(), 'Courts & Judges')]"))).Perform();
+                }
+            });
+
+            return base.Execute();
+        }
+
+        public Task<string> ExecuteOld()
         {
             collection = new ObservableCollection<Judge>();
 
@@ -101,7 +209,7 @@ namespace JudgeSearcher.Circuits
                 {
                     try
                     {
-                        driver.FindElement(By.XPath(string.Format("//a[@href='{0}']", href))).Click();
+                        driver.FindElement(By.XPath($"//a[@href='{href}']")).Click();
 
                         if (driver.WindowHandles.Count > 1)
                         {
@@ -139,9 +247,7 @@ namespace JudgeSearcher.Circuits
                         {
                             var address = values.FirstOrDefault()!.Text.Split("\r\n");
 
-                            var street_regex = "Avenue|Street";
-
-                            var street = !string.IsNullOrEmpty(address.Where(e => Regex.IsMatch(e, street_regex)).FirstOrDefault()) ? address.Where(e => Regex.IsMatch(e, street_regex)).FirstOrDefault() : string.Empty;
+                            var street = !string.IsNullOrEmpty(address.Where(e => Regex.IsMatch(e, "Avenue|Street")).FirstOrDefault()) ? address.Where(e => Regex.IsMatch(e, "Avenue|Street")).FirstOrDefault() : string.Empty;
 
                             map.Street = street.Contains(",") ? street.Substring(0, street.IndexOf(",")) : street;
                             map.Location = address[Array.IndexOf(address, street) - 1];
@@ -151,10 +257,9 @@ namespace JudgeSearcher.Circuits
                             map.City = town[0];
                             map.Zip = town[1];
 
-                            var phone_regex = "\\(\\d{3}\\) \\d{3}-\\d{4}";
-                            var phone = address.Where(e => Regex.IsMatch(e, phone_regex)).FirstOrDefault();
+                            var phone = address.Where(e => Regex.IsMatch(e, @"\(\d{3}\) \d{3}-\d{4}")).FirstOrDefault();
 
-                            map.Phone = !string.IsNullOrEmpty(phone) ? Regex.Match(phone, phone_regex).Value : string.Empty;
+                            map.Phone = !string.IsNullOrEmpty(phone) ? Regex.Match(phone, @"\(\d{3}\) \d{3}-\d{4}").Value : string.Empty;
                         }
 
                         var names = driver.FindElements(By.TagName("h2"));
@@ -181,14 +286,11 @@ namespace JudgeSearcher.Circuits
                     }
                     else
                         driver.Navigate().Back();
-
-
                 }
 
                 //---------------------------------------------------------------------------------
 
                 var counties = new string[] { "Alachua County", "Baker County", "Bradford County", "Gilchrist County", "Levy County", "Union County" };
-
 
                 foreach (var county in counties)
                 {
@@ -246,9 +348,7 @@ namespace JudgeSearcher.Circuits
                             {
                                 var address = values.FirstOrDefault()!.Text.Split("\r\n");
 
-                                var street_regex = "Avenue|Street";
-
-                                var street = !string.IsNullOrEmpty(address.Where(e => Regex.IsMatch(e, street_regex)).FirstOrDefault()) ? address.Where(e => Regex.IsMatch(e, street_regex)).FirstOrDefault() : string.Empty;
+                                var street = !string.IsNullOrEmpty(address.Where(e => Regex.IsMatch(e, "Avenue|Street")).FirstOrDefault()) ? address.Where(e => Regex.IsMatch(e, "Avenue|Street")).FirstOrDefault() : string.Empty;
 
                                 map.Street = street.Contains(",") ? street.Substring(0, street.IndexOf(",")) : street;
                                 map.Location = address[Array.IndexOf(address, street) - 1];
@@ -258,10 +358,9 @@ namespace JudgeSearcher.Circuits
                                 map.City = town[0];
                                 map.Zip = town[1];
 
-                                var phone_regex = "\\(\\d{3}\\) \\d{3}-\\d{4}";
-                                var phone = address.Where(e => Regex.IsMatch(e, phone_regex)).FirstOrDefault();
+                                var phone = address.Where(e => Regex.IsMatch(e, @"\(\d{3}\) \d{3}-\d{4}")).FirstOrDefault();
 
-                                map.Phone = !string.IsNullOrEmpty(phone) ? Regex.Match(phone, phone_regex).Value : string.Empty;
+                                map.Phone = !string.IsNullOrEmpty(phone) ? Regex.Match(phone, @"\(\d{3}\) \d{3}-\d{4}").Value : string.Empty;
                             }
 
                             var names = driver.FindElements(By.TagName("h2"));
@@ -309,7 +408,7 @@ namespace JudgeSearcher.Circuits
 
                 outstanding.ForEach(e => collection.Add(e));
 
-            });
+            }, allowImages: true);
 
             return base.Execute();
         }
