@@ -6,6 +6,7 @@ using JudgeSearcher.Models;
 using JudgeSearcher.Utility;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using Serilog;
 using System;
@@ -36,8 +37,15 @@ namespace JudgeSearcher.Circuits
 
         public override string URL => "http://www.circuit8.org/";
 
+        public List<Judge> Rows { get; set; }
+
         public override Task<string> Execute()
         {
+            if (Rows == null)
+                Rows = new List<Judge>();
+
+            Rows.Clear();
+
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
                 Actions action = new Actions(driver);
@@ -51,21 +59,42 @@ namespace JudgeSearcher.Circuits
 
                     var titles = driver.FindElements(By.XPath($"//h1|//h3")).Select(e => new Tuple<string, string>(e.TagName, e.Text)).ToList();
 
+                    var judgeType = string.Empty;
+
                     foreach (var title in titles)
                     {
                         try
                         {
-                            if (!new Regex("County|Judiciary$|Announced$").IsMatch(title.Item2))
+                            if (title.Item1.Equals("h3") && Regex.IsMatch(title.Item2, "Judiciary"))
+                                judgeType = Regex.IsMatch(title.Item2, "County") ? "County Judge" : Regex.IsMatch(title.Item2, "Circuit") ? "Circuit Judge": "Unknown";
+
+                            if (!Regex.IsMatch(title.Item2, "County|Judiciary$|Announced$"))
                             {
-                                //Debug.WriteLine($"\r\nJudge: {title.Item2}\r\n");
+                                var name = Regex.Match(title.Item2, @"(?:Judge )(.*)(?=\r)?").Groups[1].Value.Trim();
+                                var surname = Regex.Match(name, @"(?:\s)\w+$").Value.Trim();
+
+                                //if (title.Item2.Contains("Pena"))
+                                //    Debug.WriteLine("");
 
                                 Judge judge = new Judge()
                                 {
+                                    Circuit = Alias,
+                                    Type = judgeType,
                                     County = titles.Where(e => e.Item1.Equals("h1")).FirstOrDefault().Item2,
-                                    LastName = new Regex(@"\s[a-zA-Z-]{1,}$").Match(title.Item2).Value
+                                    LastName = surname
                                 };
 
-                                judge.FirstName = title.Item2.Replace("Judge ", string.Empty).Replace(judge.LastName, string.Empty);
+                                judge.FirstName = name.Replace(judge.LastName, string.Empty).Trim();
+
+                                var _type = driver.FindElements(By.XPath($"//{title.Item1}[starts-with(text(), '{title.Item2.Split(Environment.NewLine)[0]}')]/../../following-sibling::div[1]/descendant::h4")).FirstOrDefault();
+
+                                if (_type != null)
+                                {
+                                    if (Regex.IsMatch(_type.Text, "County"))
+                                        judge.Type = "County Judge";
+                                    else if (Regex.IsMatch(_type.Text, "Circuit"))
+                                        judge.Type = "Circuit Judge";
+                                }
 
                                 wait.Until(ExpectedConditions.ElementExists(By.XPath($"//{title.Item1}[starts-with(text(), '{title.Item2.Split(Environment.NewLine)[0]}')]/../../following-sibling::div/descendant::a[text()='More Info']"))).Click();
 
@@ -74,35 +103,35 @@ namespace JudgeSearcher.Circuits
 
                                 var current_assignment = wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//h3[text()='Current Assignment']/../../following-sibling::div/descendant::p"))).Select(e => e.Text).ToList();
 
-                                judge.Type = new Regex(@".*Judge").Match(current_assignment.First()).Value;
-
                                 //current_assignment.ForEach(e => Debug.WriteLine($"Assignment:\r\n{e}\r\n"));
 
                                 driver.FindElement(By.XPath("//a/span[contains(text(), 'Judicial Assistant')]/..")).Click();
 
                                 var assistants = wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//h3[contains(text(), 'Judicial Assistant')]/../../following-sibling::div/descendant::p | //h3[contains(text(), 'Judicial Assistant')]/../../following-sibling::div/div/div"))).Select(e => e.Text).ToList();
 
-                                judge.JudicialAssistant = new Regex(@"(.*(?=\r\n))|(.*)").Match(assistants.FirstOrDefault()).Value;
+                                judge.JudicialAssistant = new Regex(@"(.*(?=,))|(.*(?=\r\n))|(.*)").Match(assistants.FirstOrDefault()).Value;
 
                                 //assistants.ForEach(e => Debug.WriteLine($"Assistant:\r\n{e}\r\n"));
 
                                 driver.FindElement(By.XPath("//a/span[contains(text(), 'Office')]/..")).Click();
 
-                                var addresses = wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//h3[contains(text(), 'Office')]/../../following-sibling::div/descendant::p | //h3[contains(text(), 'Office')]/following-sibling::p"))).Select(e => e.Text).ToList();
+                                var addresses = wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//h3[contains(text(), 'Office')]/../../following-sibling::div/div/p | //h3[contains(text(), 'Office')]/../../following-sibling::div/descendant::p | //h3[contains(text(), 'Office')]/following-sibling::p"))).Select(e => e.Text).ToList();
 
                                 addresses.ForEach(e => Debug.WriteLine($"Address:\r\n{e}r\n"));
 
                                 foreach (var address in addresses)
                                 {
-                                    judge.Phone = Regex.Match(address, @"\(\d{3}\) \d{3}-\d{4}").Value;
+                                    Judge clone = (Judge)judge.Clone();
 
-                                    judge.Location = Regex.Match(address, @".*(?=\r\n)").Value;
-                                    judge.Street = Regex.Match(address, @".*Avenue|.*Street").Value;
-                                    judge.CourtRoom = Regex.Match(address, @"Room\s\w+").Value;
-                                    judge.City = Regex.Match(address, @".*(?=,\sFL\s\d+|,\sFlorida\s\d+)").Value;
-                                    judge.Zip = Regex.Match(address, @"(?:FL )\d+|(?:Florida )\d+").Value;
+                                    clone.Phone = Regex.Match(address, @"\(\d{3}\) \d{3}-\d{4}").Value;
 
-                                    collection.Add(judge);
+                                    clone.Location = Regex.Match(address, @".*(?=\r\n)").Value;
+                                    clone.Street = Regex.Match(address, @".*Avenue|.*Street").Value;
+                                    clone.CourtRoom = Regex.Match(address, @"Room\s\w+").Value;
+                                    clone.City = Regex.Match(address, @".*(?=,\sFL\s\d+|,\sFlorida\s\d+)").Value;
+                                    clone.Zip = Regex.Match(address, @"(?:FL )\d+|(?:Florida )\d+").Value;
+
+                                    Rows.Add(clone);
                                 }
 
                                 Debug.WriteLine(JsonSerializer.Serialize(judge, new JsonSerializerOptions
@@ -131,7 +160,11 @@ namespace JudgeSearcher.Circuits
 
                     action.MoveToElement(driver.FindElement(By.XPath("//a[contains(text(), 'Courts & Judges')]"))).Perform();
                 }
-            });
+            }, period: TimeSpan.FromSeconds(3));
+
+            Rows = Rows.Where(e => !string.IsNullOrEmpty(e.Location) && !e.Location.Contains("All packages")).Select(e => e).ToList();
+
+            collection = new ObservableCollection<Judge>(Rows);
 
             return base.Execute();
         }

@@ -126,7 +126,7 @@ namespace JudgeSearcher.Utility
                 }
             }
 
-            return false;
+            return true;
         }
 
 
