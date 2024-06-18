@@ -26,7 +26,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -103,7 +103,7 @@ namespace JudgeSearcher.Circuits
                                                         judge.LastName = Regex.IsMatch(cells[1], ", III|, JR\\.") ? cells[1].Substring(indexes[indexes.Length - 2]).Trim() : cells[1].Substring(indexes[indexes.Length - 1]).Trim();
                                                     }
 
-                                                    collection.Add(judge);
+                                                    judges.Add(judge);
                                                 }
                                             }
                                             catch (Exception ex)
@@ -154,7 +154,7 @@ namespace JudgeSearcher.Circuits
 
                 foreach (var address in map)
                 {
-                    foreach (var item in collection)
+                    foreach (var item in judges)
                     {
                         if (address["Name"].Contains(item.County))
                         {

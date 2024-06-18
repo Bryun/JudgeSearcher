@@ -27,7 +27,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -86,7 +86,7 @@ namespace JudgeSearcher.Circuits
 
                             judge.JudicialAssistant = line.Substring(line.IndexOf(":")).Replace(": ", string.Empty);
 
-                            collection.Add(judge);
+                            judges.Add(judge);
 
                             driver.Navigate().Back();
                             wait.Until(e => By.XPath("//h3[text()='The Judiciary']"));

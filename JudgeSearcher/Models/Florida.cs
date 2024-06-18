@@ -1,4 +1,5 @@
 ﻿using JudgeSearcher.Circuits;
+using JudgeSearcher.Utility;
 using System.Collections.ObjectModel;
 using System.Windows;
 
@@ -8,7 +9,7 @@ namespace JudgeSearcher.Models
     {
         #region Declarations
 
-        bool browser = false;
+        bool browser = false, checklist = false;
         Visibility visible = Visibility.Collapsed;
         Base circuit;
         ObservableCollection<Base> circuits;
@@ -43,6 +44,11 @@ namespace JudgeSearcher.Models
                 new Nineteenth(),
                 new Twentienth(),
             };
+
+            Validate = new Commander((e) =>
+            {
+                Circuit.View = true;
+            }, (e) => Circuit != null && Circuit.Checklist != null && Circuit.Checklist.Count > 0);
         }
 
         #endregion
@@ -55,6 +61,16 @@ namespace JudgeSearcher.Models
             set
             {
                 browser = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool Checklist
+        {
+            get => checklist;
+            set
+            {
+                checklist = value;
                 OnPropertyChanged();
             }
         }
@@ -95,6 +111,12 @@ namespace JudgeSearcher.Models
                 OnPropertyChanged();
             }
         }
+
+        #endregion
+
+        #region Commands
+
+        public Commander Validate { get; set; }
 
         #endregion
     }

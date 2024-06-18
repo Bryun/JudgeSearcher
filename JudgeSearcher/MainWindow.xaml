@@ -96,16 +96,50 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" HorizontalAlignment="Center">
-                    <TextBlock Text="{Binding Path=Circuit.Name}" FontSize="20" FontWeight="Bold" Margin="10"/>
-                </StackPanel>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="50"/>
+                </Grid.ColumnDefinitions>
 
-                <DataGrid Grid.Row="1" ItemsSource="{Binding Path=Circuit.Judges}">
+                <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Path=Circuit.Name}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold" Margin="10"/>
+
+                <TextBlock Grid.Column="2" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Hyperlink Command="{Binding Validate}">Checklist</Hyperlink>
+                    <Popup IsOpen="{Binding Path=Circuit.View}" Placement="Relative" StaysOpen="False">
+                        <Grid Margin="5" Background="White">
+                            <DataGrid ItemsSource="{Binding Path=Circuit.Checklist}">
+                                <DataGrid.RowStyle>
+                                    <Style TargetType="DataGridRow">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Exists}" Value="false">
+                                                <Setter Property="Foreground" Value="Red"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Exists}" Value="true">
+                                                <Setter Property="Foreground" Value="Green"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGrid.RowStyle>
+                                <DataGrid.Columns> 
+                                    <DataGridTextColumn Header="Circuit" Binding="{Binding Circuit}" IsReadOnly="True" Width="Auto"/>
+                                    <DataGridTextColumn Header="County" Binding="{Binding County}" IsReadOnly="True" Width="Auto"/>
+                                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" IsReadOnly="True" Width="Auto"/>
+                                    <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" IsReadOnly="True" Width="Auto"/>
+                                    <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" IsReadOnly="True" Width="Auto"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                        
+                    </Popup>
+                </TextBlock>
+
+                <DataGrid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" ItemsSource="{Binding Path=Circuit.Judges}">
                     <DataGrid.Background>
                         <ImageBrush ImageSource="Resources/florida.png" Opacity="0.3" Stretch="Uniform"/>
                     </DataGrid.Background>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="ID" Binding="{Binding ID}" IsReadOnly="True" Width="Auto"/>
+                        <!--<DataGridTextColumn Header="ID" Binding="{Binding ID}" IsReadOnly="True" Width="Auto"/>-->
                         <DataGridTextColumn Header="Type" Binding="{Binding Type}" IsReadOnly="True" Width="Auto"/>
                         <DataGridTextColumn Header="First Name" Binding="{Binding FirstName}" IsReadOnly="True" Width="Auto"/>
                         <DataGridTextColumn Header="Last Name" Binding="{Binding LastName}" IsReadOnly="True" Width="Auto"/>

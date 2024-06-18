@@ -28,7 +28,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -93,7 +93,7 @@ namespace JudgeSearcher.Circuits
 
                         }).ToList();
 
-                        list.ForEach(e => collection.Add(e));
+                        list.ForEach(e => judges.Add(e));
                     }
 
                     driver.Navigate().Back();
@@ -125,7 +125,7 @@ namespace JudgeSearcher.Circuits
 
                         var t = driver.FindElements(By.XPath("//li")).Where(e => e.Text.StartsWith("Address:")).Select(e => e.Text).FirstOrDefault()!.Address();
 
-                        collection.Where(e => e.Location == mapper[location]).ToList().ForEach(e =>
+                        judges.Where(e => e.Location == mapper[location]).ToList().ForEach(e =>
                         {
                             e.Street = t.FirstOrDefault();
                             e.City = t[Array.IndexOf(t, t.Where(e => Regex.IsMatch(e, "[0-9]{5}")).FirstOrDefault()) - 1];

@@ -29,7 +29,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -75,13 +75,13 @@ namespace JudgeSearcher.Circuits
                                 }
                                 else if (cells.Count == 3)
                                 {
-                                    judge = collection.LastOrDefault().Clone() as Judge;
+                                    judge = judges.LastOrDefault().Clone() as Judge;
                                     judge.County = cells[0].Text;
                                     judge.Phone = cells[1].Text;
                                 }
 
 
-                                collection.Add(judge);
+                                judges.Add(judge);
                             }
                             catch (Exception ex)
                             {
@@ -91,7 +91,7 @@ namespace JudgeSearcher.Circuits
                     }
                 }
 
-                collection.Where(e => !string.IsNullOrEmpty(e.ID)).ToList().ForEach(e =>
+                judges.Where(e => !string.IsNullOrEmpty(e.ID)).ToList().ForEach(e =>
                 {
                     try
                     {

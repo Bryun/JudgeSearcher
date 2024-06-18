@@ -25,7 +25,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -69,7 +69,7 @@ namespace JudgeSearcher.Circuits
                     judge.City = address[2].Trim().Substring(0, address[2].Trim().IndexOf(","));
                     judge.Zip = address[2].Substring(address[2].LastIndexOf(" ")).Trim();
 
-                    collection.Add(judge);
+                    judges.Add(judge);
                 }
 
                 driver.FindElement(By.LinkText("COUNTY JUDGES")).Click();
@@ -118,7 +118,7 @@ namespace JudgeSearcher.Circuits
                     judge.City = address[2].Trim().Substring(0, address[2].Trim().IndexOf(","));
                     judge.Zip = address[2].Substring(address[2].LastIndexOf(" ")).Trim();
 
-                    collection.Add(judge);
+                    judges.Add(judge);
                 }
             });
 

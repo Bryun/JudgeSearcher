@@ -28,7 +28,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -78,7 +78,7 @@ namespace JudgeSearcher.Circuits
                             judge.City = z[0].Substring(z[0].LastIndexOf(" ")).Trim();
                             judge.County = z[1].Trim();
 
-                            collection.Add(judge);
+                            judges.Add(judge);
 
                         }
                     }
@@ -106,7 +106,7 @@ namespace JudgeSearcher.Circuits
                             {
                                 var list = e.Split(new string[] { "\r\n", ", FL ", " FL ", " FL, ", "," }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 
-                                collection.Where(e => list.Any(x => e.Location.Contains(x)) || (e.Location == "Civil Courthouse" && list.Any(x => x == "Seminole Civil Court House"))).ToList().ForEach(e =>
+                                judges.Where(e => list.Any(x => e.Location.Contains(x)) || (e.Location == "Civil Courthouse" && list.Any(x => x == "Seminole Civil Court House"))).ToList().ForEach(e =>
                                 {
                                     e.Zip = list.Where(y => Regex.IsMatch(y, "\\d{5}(-\\d{4})?")).FirstOrDefault()!;
                                     e.Street = list[list.IndexOf(e.Zip) - 2];

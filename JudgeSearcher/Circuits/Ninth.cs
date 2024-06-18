@@ -26,7 +26,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -63,7 +63,7 @@ namespace JudgeSearcher.Circuits
                     judge.SubDivision = lines[3].Replace("Assignment ", string.Empty);
                     judge.JudicialAssistant = lines[4].Replace("Judicial Assistant ", string.Empty);
 
-                    collection.Add(judge);
+                    judges.Add(judge);
                 }
 
                 driver.FindElement(By.XPath("//a[contains(text(), 'Court Directory')]")).Click();
@@ -80,7 +80,7 @@ namespace JudgeSearcher.Circuits
 
                     var list = Regex.Split(address, "\\r\\n|,");
 
-                    collection.Where(e => e.Location == element.Text).ToList().ForEach(e =>
+                    judges.Where(e => e.Location == element.Text).ToList().ForEach(e =>
                     {
                         e.Street = list[0];
                         e.City = list[1];
@@ -96,7 +96,7 @@ namespace JudgeSearcher.Circuits
 
                 var _list = string.Join("|", Regex.Split(_address, "\\r\\n|,")).Split("|", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                collection.Where(e => e.Location == "Thomas S. Kirk Juvenile Justice Center").ToList().ForEach(e =>
+                judges.Where(e => e.Location == "Thomas S. Kirk Juvenile Justice Center").ToList().ForEach(e =>
                 {
                     e.Street = _list[0];
                     e.City = _list[1];

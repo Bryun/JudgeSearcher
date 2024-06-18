@@ -27,7 +27,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -98,7 +98,7 @@ namespace JudgeSearcher.Circuits
                         if (string.IsNullOrEmpty(judge.County) && !string.IsNullOrEmpty(judge.Location) && judge.Location.Contains("County"))
                             judge.County = judge.Location.Substring(0, judge.Location.IndexOf("County") + 6);
 
-                        collection.Add(judge);
+                        judges.Add(judge);
 
                     }
                     catch (Exception ex)

@@ -29,7 +29,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -90,7 +90,7 @@ namespace JudgeSearcher.Circuits
                                     County = Description
                                 };
 
-                                collection.Add(judge);
+                                judges.Add(judge);
                             }
                         }
                         catch (Exception ex)
@@ -102,7 +102,7 @@ namespace JudgeSearcher.Circuits
                         Debug.WriteLine("test");
                     }
 
-                    collection.Where(e => !string.IsNullOrEmpty(e.ID)).ToList().ForEach(e =>
+                    judges.Where(e => !string.IsNullOrEmpty(e.ID)).ToList().ForEach(e =>
                     {
                         try
                         {
@@ -150,7 +150,7 @@ namespace JudgeSearcher.Circuits
                     var location = courthouse.Descendants("h2").First().InnerText;
                     var address = courthouse.Descendants("p").First().InnerText.Address();
 
-                    collection.Where(e => e.Location == location).ToList().ForEach(e =>
+                    judges.Where(e => e.Location == location).ToList().ForEach(e =>
                     {
                         e.Zip = address.Where(e => Regex.IsMatch(e, "\\d{5}$")).FirstOrDefault();
                         e.City = address[Array.IndexOf(address, e.Zip) - 1];

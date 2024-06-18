@@ -27,7 +27,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
             var map = new Dictionary<string, Dictionary<string, string>>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
@@ -72,7 +72,7 @@ namespace JudgeSearcher.Circuits
                                 HearingRoom = columns[6]
                             };
 
-                            collection.Add(judge);
+                            judges.Add(judge);
                         }
                         else if (columns.Count == 4 && !exclusions.Contains(columns[0]))
                         {
@@ -103,7 +103,7 @@ namespace JudgeSearcher.Circuits
 
                     foreach (KeyValuePair<string, Dictionary<string, string>> pair in map)
                     {
-                        foreach (var e in collection)
+                        foreach (var e in judges)
                         {
                             if (e.Location == pair.Key)
                             {
@@ -142,7 +142,7 @@ namespace JudgeSearcher.Circuits
 
                         if (cells.Count == 4 && cells[0] != "Location Code")
                         {
-                            foreach (var e in collection)
+                            foreach (var e in judges)
                             {
                                 if (e.Location == link[cells[0]])
                                 {

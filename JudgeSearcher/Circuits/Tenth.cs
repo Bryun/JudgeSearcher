@@ -26,7 +26,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -113,7 +113,7 @@ namespace JudgeSearcher.Circuits
                                     }
                                 }
 
-                                collection.Add(judge);
+                                judges.Add(judge);
                             }
                         }
                         catch (Exception e)
@@ -143,7 +143,7 @@ namespace JudgeSearcher.Circuits
                         var county = container.FindElement(By.TagName("h2")).Text;
                         var info = Location(container.FindElement(By.XPath("./div[@class='map-info']")).Text);
 
-                        foreach (var e in collection)
+                        foreach (var e in judges)
                         {
                             if (e.County == county)
                             {

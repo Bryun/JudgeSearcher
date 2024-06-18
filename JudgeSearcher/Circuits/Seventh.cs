@@ -30,7 +30,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -137,7 +137,7 @@ namespace JudgeSearcher.Circuits
 
                             judge.Street = address.FirstOrDefault() ?? string.Empty;
 
-                            collection.Add(judge);
+                            judges.Add(judge);
 
                             driver.Navigate().Back();
                         }
@@ -161,7 +161,7 @@ namespace JudgeSearcher.Circuits
 
                     foreach (var location in locations)
                     {
-                        collection.Where(e => mapping.Keys.Contains(e.Street) && mapping[e.Street].Equals(location[1])).ToList().ForEach(e =>
+                        judges.Where(e => mapping.Keys.Contains(e.Street) && mapping[e.Street].Equals(location[1])).ToList().ForEach(e =>
                         {
                             e.Location = location[0];
                         });

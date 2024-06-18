@@ -18,8 +18,9 @@ namespace JudgeSearcher.Circuits
     {
         #region Declaration
 
-        public ObservableCollection<Judge> collection;
-        bool isBusy;
+        public ObservableCollection<Judge> judges;
+        private ObservableCollection<Validated> checklist;
+        bool isBusy, view;
         int status = 0;
 
         #endregion
@@ -62,10 +63,39 @@ namespace JudgeSearcher.Circuits
 
         public ObservableCollection<Judge> Judges
         {
-            get => collection;
+            get => judges;
             set
             {
-                collection = value;
+                judges = value;
+
+                if (Checklist != null && Checklist.Count > 0)
+                {
+                    foreach (var item in Checklist)
+                    {
+                        item.Exists = judges.Where(e => item.County.Equals(e.County) && item.Type.Equals(e.Type) && item.FirstName.Equals(e.FirstName) && item.LastName.Equals(e.LastName)).Count() > 0;
+                    }
+                }
+
+                OnPropertyChanged();
+            }
+        }
+
+        public virtual bool View
+        {
+            get => view;
+            set
+            {
+                view = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<Validated> Checklist
+        {
+            get => checklist;
+            set
+            {
+                checklist = value;
                 OnPropertyChanged();
             }
         }

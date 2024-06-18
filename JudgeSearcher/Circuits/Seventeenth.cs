@@ -30,7 +30,7 @@ namespace JudgeSearcher.Circuits
 
         public override Task<string> Execute()
         {
-            collection = new ObservableCollection<Judge>();
+            judges = new ObservableCollection<Judge>();
 
             _ = Scraper.Scan(URL, (driver, wait) =>
             {
@@ -150,7 +150,7 @@ namespace JudgeSearcher.Circuits
                                 Circuit = Alias
                             };
 
-                            collection.Add(judge);
+                            judges.Add(judge);
                         }
                     }
                     catch (Exception ex)
